@@ -96,6 +96,20 @@ Music::Music(int _id, string _name, Client* _artist){
     name = _name;
     artist = _artist;
 }
+class Playlist{
+public:
+    Playlist(string _name, Client* _owner){
+        name = _name;
+        owner = _owner;
+    }
+    string get_name(){return name;}
+    Client* get_owner(){return owner;}
+    void add_song(int id){songs.push_back(id);}
+private:
+    string name;
+    Client* owner;
+    vector<int> songs;
+};
 VPSS get_arg(int n){
     VPSS content;/*
     for (int i=0;i<n;i++){
@@ -286,6 +300,54 @@ void check_registerd_musics_exeption(Client* login_user,vector<Music*> musics){
         cout<<artist_musics[i]->get_id()<<", "<<artist_musics[i]->get_name()<<", "<<artist_musics[i]->get_year()<<", "<<artist_musics[i]->get_album()<<", "<<artist_musics[i]->get_tags()<<", "<<artist_musics[i]->get_duration()<<endl;
     }
 }
+vector<Playlist*> check_add_playlist_exeption(Client* login_user, vector<Playlist*> playlists){
+    if(login_user->get_mode()!="user")throw string("Permission");
+    VPSS arg = get_arg(1);
+    for (int i = 0 ;i<playlists.size();i++){
+        if(playlists[i]->get_name() == arg[0].second && (playlists[i]->get_owner())->get_username() == login_user->get_username() )throw string("invalid");
+    }
+    playlists.push_back(new Playlist(arg[0].second, login_user));
+    login_user->add_num();
+    return playlists;
+}
+vector<Playlist*> check_add_music_to_playlist_exeptoin(Client* login_user, vector<Playlist*> playlists,vector<Music*> musics){
+    if(login_user->get_mode()!="user")throw string("Permission");
+    VPSS arg = get_arg(2);
+    int id = -1;
+    string name;
+    for(int i=0;i<arg.size();i++){
+        if(arg[i].first == "id"){
+            int flag = 0;
+            for(int j=0;j<musics.size();j++){
+                if (musics[j]->get_id() == stoi(arg[i].second)){
+                    flag = 1;
+                    id = stoi(arg[i].second);
+                }
+            }
+            if(!flag) throw string("Not exist");
+        }
+        else if(arg[i].first == "name"){
+            int flag = 0;
+            for(int j=0;j<playlists.size();j++){
+                if (playlists[j]->get_name() == arg[i].second && (playlists[j]->get_owner())->get_username() == login_user->get_username()){
+                    flag =1;
+                    name = arg[i].second;
+                }
+            }
+            if (!flag)throw string("Not exist");
+        }
+        else{
+            throw string("invalid");
+        }
+    }
+    for(int j=0;j<playlists.size();j++){
+        if (playlists[j]->get_name() == name && (playlists[j]->get_owner())->get_username() == login_user->get_username()){
+            playlists[j]->add_song(id);
+        }
+    }
+    return playlists;
+
+}
 class Sputify{
 public:
     Sputify();
@@ -295,12 +357,14 @@ public:
     void show_musics_command();
     void show_users_command();
     void share_music_command();
-    void show_registered_music();
+    void show_registered_music_command();
+    void add_playlist_command();
     void commands();
 private:
     Client* login_user;
     vector<Client*> clients;
     vector<Music*> musics;
+    vector<Playlist*> playlists;
     int musics_num;
 };
 Sputify::Sputify(){
@@ -380,9 +444,18 @@ void Sputify::share_music_command(){
         try_catch_result(err);
     }
 }
-void Sputify::show_registered_music(){
+void Sputify::show_registered_music_command(){
     try{
         check_registerd_musics_exeption(login_user, musics);
+    }
+    catch(string err){
+        try_catch_result(err);
+    }
+}
+void Sputify::add_playlist_command(){
+    try{
+        playlists = check_add_playlist_exeption(login_user,playlists);
+        cout<<OK<<endl;
     }
     catch(string err){
         try_catch_result(err);
@@ -406,6 +479,9 @@ void Sputify::commands(){
             else if (task == "music" && delimiter == "?"){
                 share_music_command();
             }
+            else if (task == "playlist" && delimiter == "?"){
+                add_playlist_command();
+            }
             else{
                 try_catch_result("invalid");
             }
@@ -420,11 +496,28 @@ void Sputify::commands(){
                 show_users_command();
             }
             else if(task == "registered_musics" && delimiter == "?"){
-                show_registered_music();
+                show_registered_music_command();
             }
             else{
                 try_catch_result("invalid");
             }
+        }
+        if (command == COMMANDS[3]){
+            string task,delimiter;
+            cin>>task>>delimiter;
+            if (task == "add_playlist" && delimiter == "?"){
+                try{
+                    playlists = check_add_music_to_playlist_exeptoin(login_user,playlists,musics);
+                    cout<<OK<<endl;
+                }
+                catch(string err){
+                    try_catch_result(err);
+                }
+            }
+            else{
+                try_catch_result("invalid");
+            }
+
         }
     }
 }
