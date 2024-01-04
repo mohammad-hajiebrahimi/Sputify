@@ -445,6 +445,45 @@ void check_show_playlist_exeption(Client* login_user, vector<Playlist*> playlist
         cout<<i+1<<", "<<lists[i][0]<<", "<<lists[i][1]<<", "<<lists[i][2]<<endl;
     }
 }
+void check_search_exeption(Client* login_user, vector<Music*> musics){
+    if(login_user->get_mode() == "artist")throw string("Permission");
+    VPSS arg = get_arg(3);
+    vector<Music*> tmp;
+    for(int i=0;i<arg.size();i++){
+        if(arg[i].first == "name"){
+            for(int j=0;j<musics.size();j++){
+                if((musics[j]->get_name()).find(arg[i].second) != string::npos){
+                    tmp.push_back(musics[j]);
+                }
+            }
+            musics = tmp;
+            tmp.clear();
+        }
+        if(arg[i].first == "artist"){
+            for(int j=0;j<musics.size();j++){
+                if(((musics[j]->get_artist())->get_username()).find(arg[i].second) != string::npos){
+                    tmp.push_back(musics[j]);
+                }
+            }
+            musics = tmp;
+            tmp.clear();
+        }
+        if(arg[i].first == "tag"){
+            for(int j=0;j<musics.size();j++){
+                if((musics[j]->get_tags()).find(arg[i].second) != string::npos){
+                    tmp.push_back(musics[j]);
+                }
+            }
+            musics = tmp;
+            tmp.clear();
+        }
+    }
+    if(musics.size()==0)throw string("empty");
+    cout<<"ID, Name, Artist"<<endl;
+    for(int i=0;i<musics.size();i++){
+        cout<<musics[i]->get_id()<<", "<<musics[i]->get_name()<<", "<<(musics[i]->get_artist())->get_username()<<endl;
+    }
+}
 class Sputify{
 public:
     Sputify();
@@ -458,6 +497,7 @@ public:
     void add_playlist_command();
     void add_song_to_playlist_command();
     void delete_song_command();
+    void show_playlist_command();
     void commands();
 private:
     Client* login_user;
@@ -569,6 +609,15 @@ void Sputify::add_song_to_playlist_command(){
         try_catch_result(err);
     }
 }
+void Sputify::show_playlist_command(){
+    try{
+        VPSS arg = get_arg(1);
+        check_show_playlist_exeption(login_user,playlists, musics,clients, stoi(arg[0].second));
+    }
+    catch(string err){
+        try_catch_result(err);
+    }
+}
 void Sputify::delete_song_command(){
     try{
         VPSS arg = get_arg(1);
@@ -618,9 +667,11 @@ void Sputify::commands(){
                 show_registered_music_command();
             }
             else if(task == "playlist" && delimiter == "?"){
+                show_playlist_command();
+            }
+            else if(task == "search_music" && delimiter == "?"){
                 try{
-                    VPSS arg = get_arg(1);
-                    check_show_playlist_exeption(login_user,playlists, musics,clients, stoi(arg[0].second));
+                    check_search_exeption(login_user,musics);
                 }
                 catch(string err){
                     try_catch_result(err);
