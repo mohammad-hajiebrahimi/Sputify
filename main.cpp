@@ -45,6 +45,24 @@ class Artist: public Client{
 public:
     Artist();
 };
+class Music{
+public:
+    Music(int _id, string _name, Client* _artist);
+    int get_id(){return id;}
+    string get_name(){return name;}
+    Client* get_artist(){return artist;}
+
+
+private:
+    int id;
+    string name;
+    Client* artist;
+};
+Music::Music(int _id, string _name, Client* _artist){
+    id = _id;
+    name = _name;
+    artist = _artist;
+}
 Artist::Artist():Client(){
     mode = ARTIST;
 }
@@ -108,6 +126,20 @@ Client* check_logout_exeption(Client* login_user){
     if(login_user ==NULL)throw string("Permission");
     return NULL;
 }
+void try_catch_result(string err){
+    if(err == "invalid"){cout<<BAD_REQUEST<<endl;}
+    if(err == "Permission"){cout<<PERMISSION<<endl;}
+    if(err == "Not exist"){cout<<NOT_FOUND<<endl;}
+    if(err == "empty"){cout<<EMPTY<<endl;}
+}
+void check_musics_exeption(Client* login_user,vector<Music*> musics){
+    if(login_user == NULL) throw string ("Permission");
+    if(musics.size() == 0) throw string ("empty");
+    cout<<"ID, Name, Artist"<<endl;
+    for(int i=0;i<musics.size();i++){
+        cout<<musics[i]->get_id()<<", "<<musics[i]->get_name()<<", "<<(musics[i]->get_artist())->get_username()<<endl;
+    }
+}
 class Sputify{
 public:
     Sputify();
@@ -115,12 +147,15 @@ public:
 private:
     Client* login_user;
     vector<Client*> clients;
+    vector<Music*> musics;
+    int musics_num;
 };
 Sputify::Sputify(){
     login_user = NULL;
 }
 void Sputify::commands(){
     string command;
+
     while(cin>>command){
         if (command == COMMANDS[1]){
             string task,delimiter;
@@ -130,12 +165,11 @@ void Sputify::commands(){
                 try{
                     clients.push_back(check_signup_exeption(login_user,clients,arg));
                     login_user = clients[clients.size()-1];
+                    musics.push_back(new Music(1, "babaii", login_user));
                     cout<<OK<<endl;
                 }
                 catch (string err){
-                    if(err == "invalid"){cout<<BAD_REQUEST<<endl;}
-                    if(err == "Permission"){cout<<PERMISSION<<endl;}
-
+                    try_catch_result(err);
                 }
             }
             if (task == "login"){
@@ -145,8 +179,7 @@ void Sputify::commands(){
                     cout<<OK<<endl;
                 }
                 catch(string err){
-                    if(err == "Not exist"){cout<<NOT_FOUND<<endl;}
-                    if(err == "Permission"){cout<<PERMISSION<<endl;}
+                    try_catch_result(err);
                 }
             }
             if (task == "logout"){
@@ -155,8 +188,23 @@ void Sputify::commands(){
                     cout<<OK<<endl;
                 }
                 catch(string err){
-                    if(err == "Permission"){cout<<PERMISSION<<endl;}
+                    try_catch_result(err);
                 }
+            }
+        }
+        if (command == COMMANDS[0]){
+            string task,delimiter;
+            cin>>task>>delimiter;
+            if (task == "musics" && delimiter =="?"){
+                try{
+                    check_musics_exeption(login_user, musics);
+                }
+                catch(string err){
+                    try_catch_result(err);
+                }
+            }
+            else{
+                try_catch_result("invalid");
             }
         }
     }
