@@ -1,3 +1,5 @@
 POST signup ? username <Misagh> password <meow> mode <artist>
 POST login ? username <Misagh> password <meow>
 POST logout ?
+GET musics ?
+GET musics ? id <1>
