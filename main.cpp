@@ -38,6 +38,13 @@ public:
 User::User():Client(){
     mode = USER;
 }
+class Artist: public Client{
+public:
+    Artist();
+};
+Artist::Artist():Client(){
+    mode = ARTIST;
+}
 int main(){
 
     return 0;
