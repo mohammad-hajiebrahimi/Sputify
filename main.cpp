@@ -392,6 +392,59 @@ vector<Playlist*> check_delete_playlist_exeption( vector<Playlist*> playlists,in
     }
     return playlists;
 }
+int get_seconds_from_string(const string& timeString) {
+    int hours, minutes, seconds;
+    char delimiter;
+    stringstream ss(timeString);
+    ss >> hours;
+    ss >> delimiter;
+    ss >> minutes;
+    ss >> delimiter;
+    ss >> seconds;
+    return (hours * 3600) + (minutes * 60) + seconds;
+}
+string get_string_from_seconds(int seconds) {
+    int hours = seconds / 3600;
+    int minutes = (seconds % 3600) / 60;
+    int secs = (seconds % 3600) % 60;
+    stringstream ss;
+    ss << setw(2) << setfill('0') << hours << ":" << setw(2) << setfill('0') << minutes << ":" << setw(2) << setfill('0') << secs;
+    return ss.str();
+}
+string get_duration_of_playlist(vector<int>songs, vector<Music*> musics){
+    int dur=0;
+    for(int i=0;i<songs.size();i++){
+        for(int j=0;j<musics.size();j++){
+            if(songs[i]==musics[j]->get_id()){
+                dur+=get_seconds_from_string(musics[j]->get_duration());
+            }
+        }
+    }
+    return get_string_from_seconds(dur);
+}
+bool compare_two_vector(vector<string> a, vector<string>b){
+    return a[0]<b[0];
+}
+void check_show_playlist_exeption(Client* login_user, vector<Playlist*> playlists,vector<Music*> musics,vector<Client*> clients,int id){
+    if(clients.size()<id)throw string("Not exist");
+    if(clients[id-1]->get_mode()=="artist")throw string("invalid");
+    if(login_user->get_mode()=="artist")throw string("Permission");
+    vector<vector<string>> lists;
+    for(int i=0;i<playlists.size();i++){
+        vector<string> list;
+        if((playlists[i]->get_owner())->get_id() == id){
+            list.push_back(playlists[i]->get_name());
+            list.push_back(to_string((playlists[i]->get_songs()).size()));
+            list.push_back(get_duration_of_playlist(playlists[i]->get_songs(), musics));
+            lists.push_back(list);
+        }
+    }
+    sort(lists.begin(),lists.end(),compare_two_vector);
+    cout<<"Playlist_ID, Playlist_name, Songs_number, Duration"<<endl;
+    for(int i=0;i<lists.size();i++){
+        cout<<i+1<<", "<<lists[i][0]<<", "<<lists[i][1]<<", "<<lists[i][2]<<endl;
+    }
+}
 class Sputify{
 public:
     Sputify();
@@ -563,6 +616,15 @@ void Sputify::commands(){
             }
             else if(task == "registered_musics" && delimiter == "?"){
                 show_registered_music_command();
+            }
+            else if(task == "playlist" && delimiter == "?"){
+                try{
+                    VPSS arg = get_arg(1);
+                    check_show_playlist_exeption(login_user,playlists, musics,clients, stoi(arg[0].second));
+                }
+                catch(string err){
+                    try_catch_result(err);
+                }
             }
             else{
                 try_catch_result("invalid");
