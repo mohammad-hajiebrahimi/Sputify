@@ -45,6 +45,16 @@ public:
 Artist::Artist():Client(){
     mode = ARTIST;
 }
+class Sputify{
+public:
+    Sputify();
+private:
+    Client* login_user;
+    vector<Client*> clients;
+};
+Sputify::Sputify(){
+    login_user = NULL;
+}
 int main(){
 
     return 0;
