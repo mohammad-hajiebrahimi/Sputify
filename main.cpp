@@ -25,6 +25,7 @@ public:
     virtual void set_password(string pass){password = pass;}
     virtual void set_mode(string _mode){mode = _mode;}
     virtual int get_num(){return -1;}
+    virtual void add_num(){}
 
 protected:
     string username;
@@ -40,6 +41,7 @@ class User: public Client{
 public:
     User();
     int get_num(){return playlist_num;}
+    void add_num(){playlist_num++;}
 protected:
     int playlist_num;
 
@@ -52,6 +54,7 @@ class Artist: public Client{
 public:
     Artist();
     int get_num(){return songs_num;}
+    void add_num(){songs_num++;}
 protected:
     int songs_num;
     vector<string> songs;
@@ -70,6 +73,12 @@ public:
     string get_album(){return album;}
     string get_tags(){return tags;}
     string get_duration(){return duration;}
+    void set_name(string _name){name = _name;}
+    void set_year(int _year){year = _year;}
+    void set_album(string _album){album = _album;}
+    void set_tags(string _tags){tags = _tags;}
+    void set_path(string _path){path = _path;}
+    void set_duration(string _duration){duration = _duration;}
 
 
 private:
@@ -80,18 +89,15 @@ private:
     string album;
     string tags;
     string duration;
+    string path;
 };
 Music::Music(int _id, string _name, Client* _artist){
     id = _id;
     name = _name;
     artist = _artist;
-    year = 0;
-    album = "baba";
-    tags = "ff";
-    duration = "5:15";
 }
 VPSS get_arg(int n){
-    VPSS content;
+    VPSS content;/*
     for (int i=0;i<n;i++){
         string fir,sec,tmp=" ";
         cin>>fir;
@@ -102,7 +108,30 @@ VPSS get_arg(int n){
         }
         sec = sec.substr(2,sec.length()-3);
         content.push_back(make_pair(fir,sec));
+    }*/
+    string line;
+    getline(cin, line);
+    line =line;
+    vector < string > row;
+    stringstream str(line);
+    string word;
+    while (getline(str, word, '>')) {
+        row.clear();
+        word+=">";
+        string text;
+        stringstream strr(word);
+        getline(strr, text, ' ');
+        while (getline(strr, text, ' ')){
+            row.push_back(text);
+        }
+        string fir,sec="";
+        for(int i=1;i<row.size();i++){
+            sec+=(row[i]+" ");
+        }
+        sec = sec.substr(1,sec.length()-3);
+        content.push_back(make_pair(row[0],sec));
     }
+
     return content;
 }
 Client* find_cli(string username , vector<Client*> clients){
@@ -223,6 +252,40 @@ void check_user_exeptoin(Client* login_user,vector<Client*> clients, int id,vect
     }
 
 }
+vector<Music*> check_share_exeption(Client* login_user,vector<Music*> musics,int musics_num){
+    musics_num++;
+    if(login_user->get_mode()!="artist")throw string("Permission");
+    Music* new_music = new Music(musics_num, "",login_user);
+    VPSS arg = get_arg(6);
+    for (int i=0;i<arg.size();i++){
+        if (arg[i].first == "title")new_music->set_name(arg[i].second);
+        else if(arg[i].first == "path")new_music->set_path(arg[i].second);
+        else if(arg[i].first == "year")new_music->set_year(stoi(arg[i].second));
+        else if(arg[i].first == "tags")new_music->set_tags(arg[i].second);
+        else if(arg[i].first == "duration") new_music->set_duration(arg[i].second);
+        else if(arg[i].first == "album")new_music->set_album(arg[i].second);
+        else{
+            throw string ("invalid");
+        }
+    }
+    login_user->add_num();
+    musics.push_back(new_music);
+    return musics;
+}
+void check_registerd_musics_exeption(Client* login_user,vector<Music*> musics){
+    if(login_user->get_mode()!="artist")throw string("Permission");
+    vector<Music*> artist_musics;
+    for(int i=0;i<musics.size();i++){
+        if(login_user->get_username() == (musics[i]->get_artist())->get_username()){
+            artist_musics.push_back(musics[i]);
+        }
+    }
+    if (artist_musics.size()== 0) throw("empty");
+    cout<<"ID, Name, Year, Album, Tags, Duration"<<endl;
+    for(int i=0;i<artist_musics.size();i++){
+        cout<<artist_musics[i]->get_id()<<", "<<artist_musics[i]->get_name()<<", "<<artist_musics[i]->get_year()<<", "<<artist_musics[i]->get_album()<<", "<<artist_musics[i]->get_tags()<<", "<<artist_musics[i]->get_duration()<<endl;
+    }
+}
 class Sputify{
 public:
     Sputify();
@@ -231,6 +294,8 @@ public:
     void logout_command();
     void show_musics_command();
     void show_users_command();
+    void share_music_command();
+    void show_registered_music();
     void commands();
 private:
     Client* login_user;
@@ -240,6 +305,7 @@ private:
 };
 Sputify::Sputify(){
     login_user = NULL;
+    musics_num = 0;
 }
 void Sputify::signup_command(){
     VPSS arg = get_arg(3);
@@ -304,9 +370,26 @@ void Sputify::show_users_command(){
         try_catch_result(err);
     }
 }
+void Sputify::share_music_command(){
+    try{
+        musics = check_share_exeption(login_user, musics,musics_num);
+        musics_num++;
+        cout<<OK<<endl;
+    }
+    catch(string err){
+        try_catch_result(err);
+    }
+}
+void Sputify::show_registered_music(){
+    try{
+        check_registerd_musics_exeption(login_user, musics);
+    }
+    catch(string err){
+        try_catch_result(err);
+    }
+}
 void Sputify::commands(){
     string command;
-
     while(cin>>command){
         if (command == COMMANDS[1]){
             string task,delimiter;
@@ -320,6 +403,9 @@ void Sputify::commands(){
             else if (task == "logout" && delimiter == "?"){
                 logout_command();
             }
+            else if (task == "music" && delimiter == "?"){
+                share_music_command();
+            }
             else{
                 try_catch_result("invalid");
             }
@@ -332,6 +418,9 @@ void Sputify::commands(){
             }
             else if(task == "users" && delimiter =="?"){
                 show_users_command();
+            }
+            else if(task == "registered_musics" && delimiter == "?"){
+                show_registered_music();
             }
             else{
                 try_catch_result("invalid");
