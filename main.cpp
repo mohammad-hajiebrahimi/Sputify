@@ -26,8 +26,12 @@ public:
     virtual void set_mode(string _mode){mode = _mode;}
     virtual int get_num(){return -1;}
     virtual void add_num(){}
+    virtual void del_num(){}
+    virtual int get_id(){return id;}
+    virtual void set_id(int _id){id = _id;}
 
 protected:
+    int id;
     string username;
     string password;
     string mode;
@@ -42,6 +46,7 @@ public:
     User();
     int get_num(){return playlist_num;}
     void add_num(){playlist_num++;}
+
 protected:
     int playlist_num;
 
@@ -55,6 +60,7 @@ public:
     Artist();
     int get_num(){return songs_num;}
     void add_num(){songs_num++;}
+    void del_num(){songs_num--;}
 protected:
     int songs_num;
     vector<string> songs;
@@ -104,6 +110,8 @@ public:
     }
     string get_name(){return name;}
     Client* get_owner(){return owner;}
+    vector<int> get_songs(){return songs;}
+    void set_songs(vector<int> _songs){songs = _songs;}
     void add_song(int id){songs.push_back(id);}
 private:
     string name;
@@ -243,7 +251,7 @@ void check_users_exeption(Client* login_user,vector<Client*> clients){
         }
     }
 }
-void check_user_exeptoin(Client* login_user,vector<Client*> clients, int id,vector<Music*> musics){
+void check_user_exeptoin(Client* login_user,vector<Client*> clients, int id,vector<Music*> musics, vector<Playlist*> playlists){
     if(login_user == NULL) throw string ("Permission");
     if(clients.size()== 0) throw string ("empty");
     if(clients.size()<id) throw string("Not exist");
@@ -262,6 +270,11 @@ void check_user_exeptoin(Client* login_user,vector<Client*> clients, int id,vect
     }
     if(clients[id-1]->get_mode() == "user"){
         cout<<"Playlists: ";
+        for(int i=0;i<playlists.size();i++){
+            if((playlists[i]->get_owner())->get_id() == id)cout<<playlists[i]->get_name();
+            if(i!=playlists.size()-1)cout<<", ";
+        }
+        cout<<endl;
 
     }
 
@@ -348,6 +361,37 @@ vector<Playlist*> check_add_music_to_playlist_exeptoin(Client* login_user, vecto
     return playlists;
 
 }
+vector<Music*> check_delete_music_exeption(Client* login_user, vector<Music*> musics, int id){
+    int flag = 0;
+    for (int i=0;i<musics.size();i++){
+        if(musics[i]->get_id() == id)flag = 1;
+    }
+    if(!flag) throw string("Not exist");
+    flag = 0;
+    for (int i=0;i<musics.size();i++){
+        if(musics[i]->get_id() == id && (musics[i]->get_artist())->get_username() == login_user->get_username()){
+            flag = 1;
+            login_user->del_num();
+            musics.erase(musics.begin()+i);
+            return musics;
+        }
+    }
+    if(!flag) throw string("Permission");
+    return musics;
+}
+vector<Playlist*> check_delete_playlist_exeption( vector<Playlist*> playlists,int id){
+    for(int i = 0;i<playlists.size();i++){
+        vector<int> songs = playlists[i]->get_songs();
+        for(int j=0;j<songs.size();j++){
+            if(songs[j] == id){
+                songs.erase(songs.begin()+j);
+                break;
+            }
+        }
+        playlists[i]->set_songs(songs);
+    }
+    return playlists;
+}
 class Sputify{
 public:
     Sputify();
@@ -359,6 +403,8 @@ public:
     void share_music_command();
     void show_registered_music_command();
     void add_playlist_command();
+    void add_song_to_playlist_command();
+    void delete_song_command();
     void commands();
 private:
     Client* login_user;
@@ -376,7 +422,7 @@ void Sputify::signup_command(){
     try{
         clients.push_back(check_signup_exeption(login_user,clients,arg));
         login_user = clients[clients.size()-1];
-        //musics.push_back(new Music(1, "babaii", login_user));
+        login_user->set_id(clients.size());
         cout<<OK<<endl;
     }
     catch (string err){
@@ -427,7 +473,7 @@ void Sputify::show_users_command(){
         }
         else{
             arg = arg.substr(arg.find("<")+1,arg.find(">")-arg.find("<")-1);
-            check_user_exeptoin(login_user, clients, stoi(arg),musics);
+            check_user_exeptoin(login_user, clients, stoi(arg),musics, playlists);
         }
     }
     catch(string err){
@@ -455,6 +501,26 @@ void Sputify::show_registered_music_command(){
 void Sputify::add_playlist_command(){
     try{
         playlists = check_add_playlist_exeption(login_user,playlists);
+        cout<<OK<<endl;
+    }
+    catch(string err){
+        try_catch_result(err);
+    }
+}
+void Sputify::add_song_to_playlist_command(){
+    try{
+        playlists = check_add_music_to_playlist_exeptoin(login_user,playlists,musics);
+        cout<<OK<<endl;
+    }
+    catch(string err){
+        try_catch_result(err);
+    }
+}
+void Sputify::delete_song_command(){
+    try{
+        VPSS arg = get_arg(1);
+        musics = check_delete_music_exeption(login_user,musics,stoi(arg[0].second));
+        playlists = check_delete_playlist_exeption(playlists, stoi(arg[0].second));
         cout<<OK<<endl;
     }
     catch(string err){
@@ -506,18 +572,21 @@ void Sputify::commands(){
             string task,delimiter;
             cin>>task>>delimiter;
             if (task == "add_playlist" && delimiter == "?"){
-                try{
-                    playlists = check_add_music_to_playlist_exeptoin(login_user,playlists,musics);
-                    cout<<OK<<endl;
-                }
-                catch(string err){
-                    try_catch_result(err);
-                }
+                add_song_to_playlist_command();
             }
             else{
                 try_catch_result("invalid");
             }
-
+        }
+        if (command == COMMANDS[2]){
+            string task,delimiter;
+            cin>>task>>delimiter;
+            if (task == "music" && delimiter == "?"){
+                delete_song_command();
+            }
+            else{
+                try_catch_result("invalid");
+            }
         }
     }
 }
