@@ -1,5 +1,15 @@
 POST signup ? username <Misagh> password <meow> mode <artist>
+POST signup ? username <Mammad> password <babai> mode <user>
 POST login ? username <Misagh> password <meow>
 POST logout ?
 GET musics ?
 GET musics ? id <1>
+GET users ?
+GET users ? id <1>
+POST music ? title <How I meet> path <babaii.mp3> year <2023> tags <pipi;zizi;gigi> duration <00:04:35> album <bozghale>
+POST music ? title <Hew I meet> path <babaii.mp3> year <2023> tags <pipi;zizi;gigi> duration <00:15:35> album <bozghale>
+GET registered_musics ?
+POST playlist ? name <salam>
+PUT add_playlist ? name <salam> id <1>
+DELETE music ? id <1>
+GET playlist ? id <1>
