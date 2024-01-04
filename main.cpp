@@ -31,7 +31,13 @@ Client::Client(){
     password = " ";
     mode = "babaii";
 }
-
+class User: public Client{
+public:
+    User();
+};
+User::User():Client(){
+    mode = USER;
+}
 int main(){
 
     return 0;
