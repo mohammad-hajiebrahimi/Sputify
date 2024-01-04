@@ -51,17 +51,29 @@ public:
     int get_id(){return id;}
     string get_name(){return name;}
     Client* get_artist(){return artist;}
+    int get_year(){return year;}
+    string get_album(){return album;}
+    string get_tags(){return tags;}
+    string get_duration(){return duration;}
 
 
 private:
     int id;
     string name;
     Client* artist;
+    int year;
+    string album;
+    string tags;
+    string duration;
 };
 Music::Music(int _id, string _name, Client* _artist){
     id = _id;
     name = _name;
     artist = _artist;
+    year = 0;
+    album = "baba";
+    tags = "ff";
+    duration = "5:15";
 }
 Artist::Artist():Client(){
     mode = ARTIST;
@@ -140,6 +152,15 @@ void check_musics_exeption(Client* login_user,vector<Music*> musics){
         cout<<musics[i]->get_id()<<", "<<musics[i]->get_name()<<", "<<(musics[i]->get_artist())->get_username()<<endl;
     }
 }
+void check_music_exeption(Client* login_user, vector<Music*> musics,int id){
+    if(login_user == NULL) throw string ("Permission");
+    for(int i = 0 ;i<musics.size();i++){
+        if(musics[i]->get_id()==id){
+            cout<<"ID, Name, Artist, Year, Album, Tags, Duration"<<endl;
+            cout<<musics[i]->get_id()<<", "<<musics[i]->get_name()<<", "<<(musics[i]->get_artist())->get_username()<<", "<<musics[i]->get_year()<<", "<<musics[i]->get_album()<<", "<<musics[i]->get_tags()<<", "<<musics[i]->get_duration()<<endl;
+        }
+    }
+}
 class Sputify{
 public:
     Sputify();
@@ -196,8 +217,16 @@ void Sputify::commands(){
             string task,delimiter;
             cin>>task>>delimiter;
             if (task == "musics" && delimiter =="?"){
+                string arg;
+                getline (cin,arg);
                 try{
-                    check_musics_exeption(login_user, musics);
+                    if (arg == ""){
+                        check_musics_exeption(login_user, musics);
+                    }
+                    else{
+                        arg = arg.substr(arg.find("<")+1,arg.find(">")-arg.find("<")-1);
+                        check_music_exeption(login_user,musics, stoi(arg));
+                    }
                 }
                 catch(string err){
                     try_catch_result(err);
