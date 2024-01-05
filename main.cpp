@@ -61,7 +61,7 @@ void check_unfollow_exeption(Client* login_user, vector < Client * > &clients, i
         if (clients[i]->get_id() == id){
             flag = 1;
         }
-    } 
+    }
     if (!flag)throw string("Not exist");
     if (find(following.begin(),following.end(),id) == following.end()) throw string("invalid");
     auto ptr = find(following.begin(),following.end(),id);
@@ -77,6 +77,48 @@ void check_unfollow_exeption(Client* login_user, vector < Client * > &clients, i
     }
 }
 
+void check_delete_playlist_exeption(Client* login_user, vector < Playlist * > &playlists, string name){
+    if (login_user->get_mode() == "artist") throw string("Permission");
+    int flag = 0;
+    for(int i=0;i<playlists.size();i++){
+        if(playlists[i]->get_name() == name && login_user->get_username() ==(playlists[i]->get_owner())->get_username()){
+            playlists.erase(playlists.begin()-i);
+            flag = 1;
+            break;
+        }
+    }
+    if (!flag)throw string("Not exist");
+}
+void show_playlist_info(vector<int> songs, vector < Music * > musics){
+    for(int i=0;i<songs.size();i++){
+        for(int j=0;j<musics.size();j++){
+            if(songs[i] == musics[j]->get_id()){
+                cout<<musics[j]->get_id()<<", "<<musics[j]->get_name()<<", "<<(musics[j]->get_artist())->get_username()<<endl;
+            }
+        }
+    }
+}
+void check_show_user_playlist_exeption(Client* login_user, vector < Playlist * > &playlists, vector < Client * > &clients,vector < Music * > musics, VPSS arg){
+    if (login_user->get_mode() == "artist") throw string("Permission");
+    string name;
+    int id;
+    for (int i=0;i<arg.size();i++){
+        if (arg[i].first == "name")name = arg[i].second;
+        else if(arg[i].first == "id")id = stoi(arg[i].second);
+    }
+    for(int i=0;i<clients.size();i++){
+        if(clients[i]->get_id() == id && clients[i]->get_mode() == "artist") throw string("invalid");
+    }
+    int flag = 0;
+    for(int i=0;i<playlists.size();i++){
+        if(playlists[i]->get_name() == name && (playlists[i]->get_owner())->get_id() == id){
+            cout<<"ID, Name, Artist"<<endl;
+            show_playlist_info(playlists[i]->get_songs(), musics);
+            flag = 1;
+        }
+    }
+    if (!flag)throw string("Not exist");
+}
 void Sputify::signup_command() {
     VPSS arg = get_arg(3);
     try {
@@ -177,7 +219,12 @@ void Sputify::add_song_to_playlist_command() {
 void Sputify::show_playlist_command() {
     try {
         VPSS arg = get_arg(1);
-        check_show_playlist_exeption(login_user, playlists, musics, clients, stoi(arg[0].second));
+        if(arg.size()==1){
+            check_show_playlist_exeption(login_user, playlists, musics, clients, stoi(arg[0].second));
+        }
+        else{
+            check_show_user_playlist_exeption(login_user, playlists,clients,musics,arg);
+        }
     } catch (string err) {
         try_catch_result(err);
     }
@@ -187,7 +234,7 @@ void Sputify::delete_song_command() {
     try {
         VPSS arg = get_arg(1);
         musics = check_delete_music_exeption(login_user, musics, stoi(arg[0].second));
-        playlists = check_delete_playlist_exeption(playlists, stoi(arg[0].second));
+        playlists = check_delete_song_of_playlist_exeption(playlists, stoi(arg[0].second));
         cout << OK << endl;
     } catch (string err) {
         try_catch_result(err);
@@ -278,7 +325,17 @@ void Sputify::commands() {
             cin >> task >> delimiter;
             if (task == MUSIC && delimiter == "?") {
                 delete_song_command();
-            } else {
+            } else if (task == PLAYLIST && delimiter == "?"){
+                try{
+                    VPSS arg = get_arg(1);
+                    check_delete_playlist_exeption(login_user, playlists, arg[0].second);
+                    cout<<OK<<endl;
+                }
+                catch(string err){
+                    try_catch_result(err);
+                }
+            }
+            else {
                 try_catch_result("invalid");
             }
         }

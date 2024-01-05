@@ -271,7 +271,7 @@ vector < Music * > check_delete_music_exeption(Client * login_user, vector < Mus
     return musics;
 }
 
-vector < Playlist * > check_delete_playlist_exeption(vector < Playlist * > playlists, int id) {
+vector < Playlist * > check_delete_song_of_playlist_exeption(vector < Playlist * > playlists, int id) {
     for (int i = 0; i < playlists.size(); i++) {
         vector < int > songs = playlists[i] -> get_songs();
         for (int j = 0; j < songs.size(); j++) {
