@@ -1,5 +1,6 @@
 #ifndef CLIENT_HPP_INCLUDE
 #define CLIENT_HPP_INCLUDE
+class Music;
 class Client {
     public: Client();
     virtual string get_username() {
@@ -47,12 +48,15 @@ class Client {
     virtual vector<int> get_follower(){return follower_id;}
     virtual void follower(int _id){follower_id.push_back(_id);}
     virtual void set_follower(vector<int> _follower_id){follower_id = _follower_id;}
+    virtual vector<Music*> get_likes(){return likes;}
+    virtual void add_like(Music* like){likes.push_back(like);}
     protected: int id;
     string username;
     string password;
     string mode;
     vector<int> follow_id;
     vector<int> follower_id;
+    vector<Music*> likes;
 };
 
 Client::Client() {

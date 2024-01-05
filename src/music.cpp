@@ -52,7 +52,8 @@ class Music {
     void set_duration(string _duration) {
         duration = _duration;
     }
-
+    int get_like(){return like;}
+    void add_like(){like++;}
     private: int id;
     string name;
     Client * artist;
@@ -61,10 +62,12 @@ class Music {
     string tags;
     string duration;
     string path;
+    int like;
 };
 
 Music::Music(int _id, string _name, Client * _artist) {
     id = _id;
     name = _name;
     artist = _artist;
+    like = 0;
 }

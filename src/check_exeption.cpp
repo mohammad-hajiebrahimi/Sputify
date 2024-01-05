@@ -137,21 +137,34 @@ void check_user_exeptoin(Client * login_user, vector < Client * > clients, int i
     cout<<endl;
     if (clients[id - 1] -> get_mode() == "artist") {
         cout << "Songs: ";
+        int flag = 0;
         for (int i = 0; i < musics.size(); i++) {
             if ((musics[i] -> get_artist()) -> get_username() == clients[id - 1] -> get_username()) {
-                cout << musics[i] -> get_name();
+                if (!flag){
+                    cout << musics[i] -> get_name();
+                    flag = 1;
+                }
+                else{
+                    cout <<", "<< musics[i] -> get_name();
+                }
             }
-
-            if (i != musics.size() - 1) cout << ", ";
         }
         cout << endl;
     }
 
     if (clients[id - 1] -> get_mode() == "user") {
         cout << "Playlists: ";
+        int flag = 0;
         for (int i = 0; i < playlists.size(); i++) {
-            if ((playlists[i] -> get_owner()) -> get_id() == id) cout << playlists[i] -> get_name();
-            if (i != playlists.size() - 1) cout << ", ";
+            if ((playlists[i] -> get_owner()) -> get_id() == id) {
+                if(!flag){
+                    cout << playlists[i] -> get_name();
+                    flag = 1;
+                }
+                else{
+                    cout <<", "<< playlists[i] -> get_name();
+                }
+            }
         }
 
         cout << endl;
