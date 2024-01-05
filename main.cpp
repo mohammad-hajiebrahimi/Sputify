@@ -29,6 +29,23 @@ const string YEAR = "year";
 const string TAGS = "tags";
 const string DURATION = "duration";
 const string ALBUM = "album";
+const string ERR_INVALID = "invalid";
+const string ERR_PERMISSION = "Permission";
+const string ERR_NOTEXIST = "Not exist";
+const string ERR_EMPTY = "empty";
+const string MODE = "mode";
+const string LARTIST = "artist";
+const string LIKES = "likes";
+const string RECOMMENDATIONS = "recommendations";
+const string USERNAME = "username";
+const string LUSER = "user";
+const string PASSWORD = "password";
+const string NAME = "name";
+const string _ID = "id";
+const string TAG = "tag";
+const string FOLLOW = "follow";
+const string UNFOLLOW = "unfollow";
+const string LIKE = "like";
 const vector < string > COMMANDS = {
     "GET",
     "POST",
@@ -77,21 +94,37 @@ class Client {
     virtual void set_id(int _id) {
         id = _id;
     }
-    virtual vector<int> get_following(){return follow_id;}
-    virtual void follow(int _id){follow_id.push_back(_id);}
-    virtual void set_following(vector<int> _follow_id){follow_id = _follow_id;}
-    virtual vector<int> get_follower(){return follower_id;}
-    virtual void follower(int _id){follower_id.push_back(_id);}
-    virtual void set_follower(vector<int> _follower_id){follower_id = _follower_id;}
-    virtual vector<Music*> get_likes(){return likes;}
-    virtual void add_like(Music* like){likes.push_back(like);}
+    virtual vector < int > get_following() {
+        return follow_id;
+    }
+    virtual void follow(int _id) {
+        follow_id.push_back(_id);
+    }
+    virtual void set_following(vector < int > _follow_id) {
+        follow_id = _follow_id;
+    }
+    virtual vector < int > get_follower() {
+        return follower_id;
+    }
+    virtual void follower(int _id) {
+        follower_id.push_back(_id);
+    }
+    virtual void set_follower(vector < int > _follower_id) {
+        follower_id = _follower_id;
+    }
+    virtual vector < Music * > get_likes() {
+        return likes;
+    }
+    virtual void add_like(Music * like) {
+        likes.push_back(like);
+    }
     protected: int id;
     string username;
     string password;
     string mode;
-    vector<int> follow_id;
-    vector<int> follower_id;
-    vector<Music*> likes;
+    vector < int > follow_id;
+    vector < int > follower_id;
+    vector < Music * > likes;
 };
 
 Client::Client() {
@@ -100,6 +133,7 @@ Client::Client() {
     mode = "";
     int id = -1;
 }
+
 class User: public Client {
     public: User();
     int get_num() {
@@ -195,8 +229,12 @@ class Music {
     void set_duration(string _duration) {
         duration = _duration;
     }
-    int get_like(){return like;}
-    void add_like(){like++;}
+    int get_like() {
+        return like;
+    }
+    void add_like() {
+        like++;
+    }
     private: int id;
     string name;
     Client * artist;
@@ -277,19 +315,19 @@ VPSS get_arg(int n) {
 }
 
 void try_catch_result(string err) {
-    if (err == "invalid") {
+    if (err == ERR_INVALID) {
         cout << BAD_REQUEST << endl;
     }
 
-    if (err == "Permission") {
+    if (err == ERR_PERMISSION) {
         cout << PERMISSION << endl;
     }
 
-    if (err == "Not exist") {
+    if (err == ERR_NOTEXIST) {
         cout << NOT_FOUND << endl;
     }
 
-    if (err == "empty") {
+    if (err == ERR_EMPTY) {
         cout << EMPTY << endl;
     }
 }
@@ -346,36 +384,36 @@ Client * check_signup_exeption(Client * login_user, vector < Client * > clients,
     string mode;
     Client * new_cli = NULL;
     for (int i = 0; i < arg.size(); i++) {
-        if (arg[i].first == "mode") {
+        if (arg[i].first == MODE) {
             mode = arg[i].second;
         }
     }
 
-    if (mode == "artist") new_cli = new Artist();
+    if (mode == LARTIST) new_cli = new Artist();
     else {
         new_cli = new User();
     }
 
     for (int i = 0; i < arg.size(); i++) {
-        if (arg[i].first == "username") {
+        if (arg[i].first == USERNAME) {
             for (int j = 0; j < clients.size(); j++) {
-                if (clients[i] -> get_username() == arg[i].second) throw string("invalid");
+                if (clients[j] -> get_username() == arg[i].second) throw string(ERR_INVALID);
             }
 
             new_cli -> set_username(arg[i].second);
         }
 
-        if (arg[i].first == "mode" && (arg[i].second != "artist" && arg[i].second != "user")) throw string("invalid");
-        if (arg[i].first == "mode") {
+        if (arg[i].first == MODE && (arg[i].second != LARTIST && arg[i].second != LUSER)) throw string(ERR_INVALID);
+        if (arg[i].first == MODE) {
             new_cli -> set_mode(arg[i].second);
         }
 
-        if (arg[i].first == "password") {
+        if (arg[i].first == PASSWORD) {
             new_cli -> set_password(arg[i].second);
         }
     }
 
-    if (login_user != NULL) throw string("Permission");
+    if (login_user != NULL) throw string(ERR_PERMISSION);
 
     return new_cli;
 }
@@ -383,30 +421,30 @@ Client * check_signup_exeption(Client * login_user, vector < Client * > clients,
 Client * check_login_exeption(Client * login_user, vector < Client * > clients, VPSS arg) {
     Client * try_to_login = NULL;
     for (int i = 0; i < arg.size(); i++) {
-        if (arg[i].first == "username") {
+        if (arg[i].first == USERNAME) {
             try_to_login = find_cli(arg[i].second, clients);
         }
     }
 
-    if (try_to_login == NULL) throw string("Not exist");
+    if (try_to_login == NULL) throw string(ERR_NOTEXIST);
     for (int i = 0; i < arg.size(); i++) {
-        if (arg[i].first == "password") {
-            if (arg[i].second != try_to_login -> get_password()) throw string("Permission");
+        if (arg[i].first == PASSWORD) {
+            if (arg[i].second != try_to_login -> get_password()) throw string(ERR_PERMISSION);
         }
     }
 
-    if (login_user != NULL) throw string("Permission");
+    if (login_user != NULL) throw string(ERR_PERMISSION);
     return try_to_login;
 }
 
 Client * check_logout_exeption(Client * login_user) {
-    if (login_user == NULL) throw string("Permission");
+    if (login_user == NULL) throw string(ERR_PERMISSION);
     return NULL;
 }
 
 void check_musics_exeption(Client * login_user, vector < Music * > musics) {
-    if (login_user == NULL) throw string("Permission");
-    if (musics.size() == 0) throw string("empty");
+    if (login_user == NULL) throw string(ERR_PERMISSION);
+    if (musics.size() == 0) throw string(ERR_EMPTY);
     cout << "ID, Name, Artist" << endl;
     for (int i = 0; i < musics.size(); i++) {
         cout << musics[i] -> get_id() << ", " << musics[i] -> get_name() << ", " << (musics[i] -> get_artist()) -> get_username() << endl;
@@ -414,7 +452,7 @@ void check_musics_exeption(Client * login_user, vector < Music * > musics) {
 }
 
 void check_music_exeption(Client * login_user, vector < Music * > musics, int id) {
-    if (login_user == NULL) throw string("Permission");
+    if (login_user == NULL) throw string(ERR_PERMISSION);
     int flag = 0;
     for (int i = 0; i < musics.size(); i++) {
         if (musics[i] -> get_id() == id) {
@@ -424,12 +462,12 @@ void check_music_exeption(Client * login_user, vector < Music * > musics, int id
         }
     }
 
-    if (!flag) throw string("Not exist");
+    if (!flag) throw string(ERR_NOTEXIST);
 }
 
 void check_users_exeption(Client * login_user, vector < Client * > clients) {
-    if (login_user == NULL) throw string("Permission");
-    if (clients.size() == 0) throw string("empty");
+    if (login_user == NULL) throw string(ERR_PERMISSION);
+    if (clients.size() == 0) throw string(ERR_EMPTY);
     cout << "ID, Mode, Username, Playlists_number/Songs_number" << endl;
     for (int i = 0; i < clients.size(); i++) {
         if (clients[i] -> get_mode() == ARTIST) {
@@ -441,61 +479,59 @@ void check_users_exeption(Client * login_user, vector < Client * > clients) {
 }
 
 void check_user_exeptoin(Client * login_user, vector < Client * > clients, int id, vector < Music * > musics, vector < Playlist * > playlists) {
-    if (login_user == NULL) throw string("Permission");
-    if (clients.size() == 0) throw string("empty");
-    if (clients.size() < id) throw string("Not exist");
+    if (login_user == NULL) throw string(ERR_PERMISSION);
+    if (clients.size() == 0) throw string(ERR_EMPTY);
+    if (clients.size() < id) throw string(ERR_NOTEXIST);
     cout << "ID: " << id << endl;
     cout << "Mode: " << clients[id - 1] -> get_mode() << endl;
     cout << "Username: " << clients[id - 1] -> get_username() << endl;
-    cout <<"Followings: ";
-    vector<int> followings = clients[id-1]->get_following();
-    for (int i=0;i<followings.size();i++){
-        for(int j=0;j<clients.size();j++){
-            if(followings[i] == clients[j]->get_id()){
-                cout<<clients[j]->get_username();
-                if(i<followings.size()-1)cout<<", ";
+    cout << "Followings: ";
+    vector < int > followings = clients[id - 1] -> get_following();
+    for (int i = 0; i < followings.size(); i++) {
+        for (int j = 0; j < clients.size(); j++) {
+            if (followings[i] == clients[j] -> get_id()) {
+                cout << clients[j] -> get_username();
+                if (i < followings.size() - 1) cout << ", ";
             }
         }
     }
-    cout<<endl<<"Followers: ";
-    vector<int> followers = clients[id-1]->get_follower();
-    for (int i=0;i<followers.size();i++){
-        for(int j=0;j<clients.size();j++){
-            if(followers[i] == clients[j]->get_id()){
-                cout<<clients[j]->get_username();
-                if(i<followers.size()-1)cout<<", ";
+    cout << endl << "Followers: ";
+    vector < int > followers = clients[id - 1] -> get_follower();
+    for (int i = 0; i < followers.size(); i++) {
+        for (int j = 0; j < clients.size(); j++) {
+            if (followers[i] == clients[j] -> get_id()) {
+                cout << clients[j] -> get_username();
+                if (i < followers.size() - 1) cout << ", ";
             }
         }
     }
-    cout<<endl;
-    if (clients[id - 1] -> get_mode() == "artist") {
+    cout << endl;
+    if (clients[id - 1] -> get_mode() == LARTIST) {
         cout << "Songs: ";
         int flag = 0;
         for (int i = 0; i < musics.size(); i++) {
             if ((musics[i] -> get_artist()) -> get_username() == clients[id - 1] -> get_username()) {
-                if (!flag){
+                if (!flag) {
                     cout << musics[i] -> get_name();
                     flag = 1;
-                }
-                else{
-                    cout <<", "<< musics[i] -> get_name();
+                } else {
+                    cout << ", " << musics[i] -> get_name();
                 }
             }
         }
         cout << endl;
     }
 
-    if (clients[id - 1] -> get_mode() == "user") {
+    if (clients[id - 1] -> get_mode() == LUSER) {
         cout << "Playlists: ";
         int flag = 0;
         for (int i = 0; i < playlists.size(); i++) {
             if ((playlists[i] -> get_owner()) -> get_id() == id) {
-                if(!flag){
+                if (!flag) {
                     cout << playlists[i] -> get_name();
                     flag = 1;
-                }
-                else{
-                    cout <<", "<< playlists[i] -> get_name();
+                } else {
+                    cout << ", " << playlists[i] -> get_name();
                 }
             }
         }
@@ -504,9 +540,9 @@ void check_user_exeptoin(Client * login_user, vector < Client * > clients, int i
     }
 }
 
-vector <Music *> check_share_exeption(Client * login_user, vector < Music * > musics, int musics_num) {
+vector < Music * > check_share_exeption(Client * login_user, vector < Music * > musics, int musics_num) {
     musics_num++;
-    if (login_user -> get_mode() != "artist") throw string("Permission");
+    if (login_user -> get_mode() != LARTIST) throw string(ERR_PERMISSION);
     Music * new_music = new Music(musics_num, "", login_user);
     VPSS arg = get_arg(6);
     for (int i = 0; i < arg.size(); i++) {
@@ -518,7 +554,7 @@ vector <Music *> check_share_exeption(Client * login_user, vector < Music * > mu
         else if (arg[i].first == DURATION) new_music -> set_duration(arg[i].second);
         else if (arg[i].first == ALBUM) new_music -> set_album(arg[i].second);
         else {
-            throw string("invalid");
+            throw string(ERR_INVALID);
         }
     }
 
@@ -528,7 +564,7 @@ vector <Music *> check_share_exeption(Client * login_user, vector < Music * > mu
 }
 
 void check_registerd_musics_exeption(Client * login_user, vector < Music * > musics) {
-    if (login_user -> get_mode() != "artist") throw string("Permission");
+    if (login_user == NULL || login_user -> get_mode() != LARTIST) throw string(ERR_PERMISSION);
     vector < Music * > artist_musics;
     for (int i = 0; i < musics.size(); i++) {
         if (login_user -> get_username() == (musics[i] -> get_artist()) -> get_username()) {
@@ -536,7 +572,7 @@ void check_registerd_musics_exeption(Client * login_user, vector < Music * > mus
         }
     }
 
-    if (artist_musics.size() == 0) throw ("empty");
+    if (artist_musics.size() == 0) throw (ERR_EMPTY);
     cout << "ID, Name, Year, Album, Tags, Duration" << endl;
     for (int i = 0; i < artist_musics.size(); i++) {
         cout << artist_musics[i] -> get_id() << ", " << artist_musics[i] -> get_name() << ", " << artist_musics[i] -> get_year() << ", " << artist_musics[i] -> get_album() << ", " << artist_musics[i] -> get_tags() << ", " << artist_musics[i] -> get_duration() << endl;
@@ -544,10 +580,10 @@ void check_registerd_musics_exeption(Client * login_user, vector < Music * > mus
 }
 
 vector < Playlist * > check_add_playlist_exeption(Client * login_user, vector < Playlist * > playlists) {
-    if (login_user -> get_mode() != "user") throw string("Permission");
+    if (login_user -> get_mode() != LUSER) throw string(ERR_PERMISSION);
     VPSS arg = get_arg(1);
     for (int i = 0; i < playlists.size(); i++) {
-        if (playlists[i] -> get_name() == arg[0].second && (playlists[i] -> get_owner()) -> get_username() == login_user -> get_username()) throw string("invalid");
+        if (playlists[i] -> get_name() == arg[0].second && (playlists[i] -> get_owner()) -> get_username() == login_user -> get_username()) throw string(ERR_INVALID);
     }
 
     playlists.push_back(new Playlist(arg[0].second, login_user));
@@ -556,12 +592,12 @@ vector < Playlist * > check_add_playlist_exeption(Client * login_user, vector < 
 }
 
 vector < Playlist * > check_add_music_to_playlist_exeptoin(Client * login_user, vector < Playlist * > playlists, vector < Music * > musics) {
-    if (login_user -> get_mode() != "user") throw string("Permission");
+    if (login_user -> get_mode() != LUSER) throw string(ERR_PERMISSION);
     VPSS arg = get_arg(2);
     int id = -1;
     string name;
     for (int i = 0; i < arg.size(); i++) {
-        if (arg[i].first == "id") {
+        if (arg[i].first == _ID) {
             int flag = 0;
             for (int j = 0; j < musics.size(); j++) {
                 if (musics[j] -> get_id() == stoi(arg[i].second)) {
@@ -570,8 +606,8 @@ vector < Playlist * > check_add_music_to_playlist_exeptoin(Client * login_user, 
                 }
             }
 
-            if (!flag) throw string("Not exist");
-        } else if (arg[i].first == "name") {
+            if (!flag) throw string(ERR_NOTEXIST);
+        } else if (arg[i].first == NAME) {
             int flag = 0;
             for (int j = 0; j < playlists.size(); j++) {
                 if (playlists[j] -> get_name() == arg[i].second && (playlists[j] -> get_owner()) -> get_username() == login_user -> get_username()) {
@@ -580,9 +616,9 @@ vector < Playlist * > check_add_music_to_playlist_exeptoin(Client * login_user, 
                 }
             }
 
-            if (!flag) throw string("Not exist");
+            if (!flag) throw string(ERR_NOTEXIST);
         } else {
-            throw string("invalid");
+            throw string(ERR_INVALID);
         }
     }
 
@@ -602,7 +638,7 @@ vector < Music * > check_delete_music_exeption(Client * login_user, vector < Mus
         if (musics[i] -> get_id() == id) flag = 1;
     }
 
-    if (!flag) throw string("Not exist");
+    if (!flag) throw string(ERR_NOTEXIST);
     flag = 0;
     for (int i = 0; i < musics.size(); i++) {
         if (musics[i] -> get_id() == id && (musics[i] -> get_artist()) -> get_username() == login_user -> get_username()) {
@@ -613,7 +649,7 @@ vector < Music * > check_delete_music_exeption(Client * login_user, vector < Mus
         }
     }
 
-    if (!flag) throw string("Permission");
+    if (!flag) throw string(ERR_PERMISSION);
     return musics;
 }
 
@@ -634,9 +670,9 @@ vector < Playlist * > check_delete_song_of_playlist_exeption(vector < Playlist *
 }
 
 void check_show_playlist_exeption(Client * login_user, vector < Playlist * > playlists, vector < Music * > musics, vector < Client * > clients, int id) {
-    if (clients.size() < id) throw string("Not exist");
-    if (clients[id - 1] -> get_mode() == "artist") throw string("invalid");
-    if (login_user -> get_mode() == "artist") throw string("Permission");
+    if (clients.size() < id) throw string(ERR_NOTEXIST);
+    if (clients[id - 1] -> get_mode() == LARTIST) throw string(ERR_INVALID);
+    if (login_user -> get_mode() == LARTIST) throw string(ERR_PERMISSION);
     vector < vector < string >> lists;
     for (int i = 0; i < playlists.size(); i++) {
         vector < string > list;
@@ -656,11 +692,11 @@ void check_show_playlist_exeption(Client * login_user, vector < Playlist * > pla
 }
 
 void check_search_exeption(Client * login_user, vector < Music * > musics) {
-    if (login_user -> get_mode() == "artist") throw string("Permission");
+    if (login_user -> get_mode() == LARTIST) throw string(ERR_PERMISSION);
     VPSS arg = get_arg(3);
     vector < Music * > tmp;
     for (int i = 0; i < arg.size(); i++) {
-        if (arg[i].first == "name") {
+        if (arg[i].first == NAME) {
             for (int j = 0; j < musics.size(); j++) {
                 if ((musics[j] -> get_name()).find(arg[i].second) != string::npos) {
                     tmp.push_back(musics[j]);
@@ -671,7 +707,7 @@ void check_search_exeption(Client * login_user, vector < Music * > musics) {
             tmp.clear();
         }
 
-        if (arg[i].first == "artist") {
+        if (arg[i].first == LARTIST) {
             for (int j = 0; j < musics.size(); j++) {
                 if (((musics[j] -> get_artist()) -> get_username()).find(arg[i].second) != string::npos) {
                     tmp.push_back(musics[j]);
@@ -682,7 +718,7 @@ void check_search_exeption(Client * login_user, vector < Music * > musics) {
             tmp.clear();
         }
 
-        if (arg[i].first == "tag") {
+        if (arg[i].first == TAG) {
             for (int j = 0; j < musics.size(); j++) {
                 if ((musics[j] -> get_tags()).find(arg[i].second) != string::npos) {
                     tmp.push_back(musics[j]);
@@ -694,13 +730,158 @@ void check_search_exeption(Client * login_user, vector < Music * > musics) {
         }
     }
 
-    if (musics.size() == 0) throw string("empty");
+    if (musics.size() == 0) throw string(ERR_EMPTY);
     cout << "ID, Name, Artist" << endl;
     for (int i = 0; i < musics.size(); i++) {
         cout << musics[i] -> get_id() << ", " << musics[i] -> get_name() << ", " << (musics[i] -> get_artist()) -> get_username() << endl;
     }
 }
 
+void check_follow_exeption(Client * login_user, vector < Client * > & clients, int id) {
+    if (login_user == NULL) throw string(ERR_PERMISSION);
+    if (login_user -> get_id() == id) throw string(ERR_INVALID);
+    vector < int > following = login_user -> get_following();
+    if (find(following.begin(), following.end(), id) != following.end()) throw string(ERR_INVALID);
+    int flag = 0;
+    for (int i = 0; i < clients.size(); i++) {
+        if (clients[i] -> get_id() == id) {
+            login_user -> follow(id);
+            clients[i] -> follower(login_user -> get_id());
+            flag = 1;
+        }
+    }
+    if (!flag) throw string(ERR_NOTEXIST);
+}
+
+void check_unfollow_exeption(Client * login_user, vector < Client * > & clients, int id) {
+    if (login_user == NULL) throw string(ERR_PERMISSION);
+    if (login_user -> get_id() == id) throw string(ERR_INVALID);
+    vector < int > following = login_user -> get_following();
+    int flag = 0;
+    for (int i = 0; i < clients.size(); i++) {
+        if (clients[i] -> get_id() == id) {
+            flag = 1;
+        }
+    }
+    if (!flag) throw string(ERR_NOTEXIST);
+    if (find(following.begin(), following.end(), id) == following.end()) throw string(ERR_INVALID);
+    auto ptr = find(following.begin(), following.end(), id);
+    following.erase(ptr);
+    login_user -> set_following(following);
+    for (int i = 0; i < clients.size(); i++) {
+        if (clients[i] -> get_id() == id) {
+            vector < int > follower = clients[i] -> get_follower();
+            auto ptr1 = find(follower.begin(), follower.end(), login_user -> get_id());
+            follower.erase(ptr1);
+            clients[i] -> set_follower(follower);
+        }
+    }
+}
+
+void check_delete_playlist_exeption(Client * login_user, vector < Playlist * > & playlists, string name) {
+    if (login_user -> get_mode() == LARTIST) throw string(ERR_PERMISSION);
+    int flag = 0;
+    for (int i = 0; i < playlists.size(); i++) {
+        if (playlists[i] -> get_name() == name && login_user -> get_username() == (playlists[i] -> get_owner()) -> get_username()) {
+            playlists.erase(playlists.begin() - i);
+            flag = 1;
+            break;
+        }
+    }
+    if (!flag) throw string(ERR_NOTEXIST);
+}
+
+void show_playlist_info(vector < int > songs, vector < Music * > musics) {
+    for (int i = 0; i < songs.size(); i++) {
+        for (int j = 0; j < musics.size(); j++) {
+            if (songs[i] == musics[j] -> get_id()) {
+                cout << musics[j] -> get_id() << ", " << musics[j] -> get_name() << ", " << (musics[j] -> get_artist()) -> get_username() << endl;
+            }
+        }
+    }
+}
+
+void check_show_user_playlist_exeption(Client * login_user, vector < Playlist * > & playlists, vector < Client * > & clients, vector < Music * > musics, VPSS arg) {
+    if (login_user -> get_mode() == LARTIST) throw string(ERR_PERMISSION);
+    string name;
+    int id;
+    for (int i = 0; i < arg.size(); i++) {
+        if (arg[i].first == NAME) name = arg[i].second;
+        else if (arg[i].first == _ID) id = stoi(arg[i].second);
+    }
+    for (int i = 0; i < clients.size(); i++) {
+        if (clients[i] -> get_id() == id && clients[i] -> get_mode() == LARTIST) throw string(ERR_INVALID);
+    }
+    int flag = 0;
+    for (int i = 0; i < playlists.size(); i++) {
+        if (playlists[i] -> get_name() == name && (playlists[i] -> get_owner()) -> get_id() == id) {
+            cout << "ID, Name, Artist" << endl;
+            show_playlist_info(playlists[i] -> get_songs(), musics);
+            flag = 1;
+        }
+    }
+    if (!flag) throw string(ERR_NOTEXIST);
+}
+
+void check_like_exeption(Client * login_user, vector < Music * > musics, int id) {
+    if (login_user -> get_mode() == LARTIST) throw string(ERR_PERMISSION);
+    Music * music = NULL;
+    for (int i = 0; i < musics.size(); i++) {
+        if (musics[i] -> get_id() == id) {
+            music = musics[i];
+        }
+    }
+    if (music == NULL) throw string(ERR_NOTEXIST);
+    vector < Music * > likes = login_user -> get_likes();
+    for (int i = 0; i < likes.size(); i++) {
+        if (likes[i] -> get_id() == music -> get_id()) {
+            throw string(ERR_INVALID);
+        }
+    }
+    music -> add_like();
+    login_user -> add_like(music);
+}
+
+void check_show_likes_exeption(Client * login_user) {
+    if (login_user -> get_mode() == LARTIST) throw string(ERR_PERMISSION);
+    vector < Music * > likes = login_user -> get_likes();
+    if (likes.size() == 0) throw string(ERR_EMPTY);
+    cout << "ID, Name, Artist" << endl;
+    for (int i = 0; i < likes.size(); i++) {
+        cout << likes[i] -> get_id() << ", " << likes[i] -> get_name() << ", " << (likes[i] -> get_artist()) -> get_username() << endl;
+    }
+}
+
+bool compare_two_music(Music * a, Music * b) {
+    return (a -> get_like() > b -> get_like() && a -> get_id() < b -> get_id());
+}
+
+void check_recommendations_exeption(Client * login_user, vector < Music * > musics) {
+
+    if (login_user==NULL || login_user -> get_mode() == LARTIST) throw string(ERR_PERMISSION);
+    sort(musics.begin(), musics.end(), compare_two_music);
+    vector < Music * > likes = login_user -> get_likes();
+    for (int i = 0; i < likes.size(); i++) {
+        for (int j = 0; j < musics.size(); j++) {
+            if (likes[i] -> get_id() == musics[j] -> get_id()) {
+                musics.erase(musics.begin() + j);
+                break;
+            }
+        }
+    }
+    vector < Music * > ans_music;
+    for (int i = 0; i < musics.size(); i++) {
+        if (musics[i] -> get_like() != 0) {
+            ans_music.push_back(musics[i]);
+        }
+    }
+    musics = ans_music;
+    if (musics.size() == 0) throw string(ERR_EMPTY);
+    cout << "ID, Name, Artist, Likes" << endl;
+    for (int i = 0; i < min(int(musics.size()), 5); i++) {
+        cout << musics[i] -> get_id() << ", " << musics[i] -> get_name() << ", " << (musics[i] -> get_artist()) -> get_username() << ", " << musics[i] -> get_like() << endl;
+    }
+}
 
 class Sputify {
     public: Sputify();
@@ -735,150 +916,6 @@ Sputify::Sputify() {
     musics_num = 0;
 }
 
-void check_follow_exeption(Client* login_user, vector < Client * > &clients, int id){
-    if (login_user == NULL) throw string("Permission");
-    if (login_user->get_id() == id) throw string("invalid");
-    vector<int> following = login_user->get_following();
-    if (find(following.begin(),following.end(),id) != following.end()) throw string("invalid");
-    int flag = 0;
-    for (int i=0;i<clients.size();i++){
-        if (clients[i]->get_id() == id){
-            login_user->follow(id);
-            clients[i]->follower(login_user->get_id());
-            flag = 1;
-        }
-    }
-    if (!flag)throw string("Not exist");
-}
-
-void check_unfollow_exeption(Client* login_user, vector < Client * > &clients, int id){
-    if (login_user == NULL) throw string("Permission");
-    if (login_user->get_id() == id) throw string("invalid");
-    vector<int> following = login_user->get_following();
-    int flag = 0;
-    for (int i=0;i<clients.size();i++){
-        if (clients[i]->get_id() == id){
-            flag = 1;
-        }
-    }
-    if (!flag)throw string("Not exist");
-    if (find(following.begin(),following.end(),id) == following.end()) throw string("invalid");
-    auto ptr = find(following.begin(),following.end(),id);
-    following.erase(ptr);
-    login_user->set_following(following);
-    for (int i=0;i<clients.size();i++){
-        if (clients[i]->get_id() == id){
-            vector<int> follower = clients[i]->get_follower();
-            auto ptr1 = find(follower.begin(),follower.end(),login_user->get_id());
-            follower.erase(ptr1);
-            clients[i]->set_follower(follower);
-        }
-    }
-}
-
-void check_delete_playlist_exeption(Client* login_user, vector < Playlist * > &playlists, string name){
-    if (login_user->get_mode() == "artist") throw string("Permission");
-    int flag = 0;
-    for(int i=0;i<playlists.size();i++){
-        if(playlists[i]->get_name() == name && login_user->get_username() ==(playlists[i]->get_owner())->get_username()){
-            playlists.erase(playlists.begin()-i);
-            flag = 1;
-            break;
-        }
-    }
-    if (!flag)throw string("Not exist");
-}
-
-void show_playlist_info(vector<int> songs, vector < Music * > musics){
-    for(int i=0;i<songs.size();i++){
-        for(int j=0;j<musics.size();j++){
-            if(songs[i] == musics[j]->get_id()){
-                cout<<musics[j]->get_id()<<", "<<musics[j]->get_name()<<", "<<(musics[j]->get_artist())->get_username()<<endl;
-            }
-        }
-    }
-}
-
-void check_show_user_playlist_exeption(Client* login_user, vector < Playlist * > &playlists, vector < Client * > &clients,vector < Music * > musics, VPSS arg){
-    if (login_user->get_mode() == "artist") throw string("Permission");
-    string name;
-    int id;
-    for (int i=0;i<arg.size();i++){
-        if (arg[i].first == "name")name = arg[i].second;
-        else if(arg[i].first == "id")id = stoi(arg[i].second);
-    }
-    for(int i=0;i<clients.size();i++){
-        if(clients[i]->get_id() == id && clients[i]->get_mode() == "artist") throw string("invalid");
-    }
-    int flag = 0;
-    for(int i=0;i<playlists.size();i++){
-        if(playlists[i]->get_name() == name && (playlists[i]->get_owner())->get_id() == id){
-            cout<<"ID, Name, Artist"<<endl;
-            show_playlist_info(playlists[i]->get_songs(), musics);
-            flag = 1;
-        }
-    }
-    if (!flag)throw string("Not exist");
-}
-
-void check_like_exeption(Client* login_user, vector < Music * > musics, int id){
-    if (login_user->get_mode() == "artist") throw string("Permission");
-    Music* music = NULL;
-    for (int i=0;i<musics.size();i++){
-        if (musics[i]->get_id() == id){
-            music = musics[i];
-        }
-    }
-    if(music == NULL)throw string("Not exist");
-    vector<Music*> likes = login_user->get_likes();
-    for(int i=0;i<likes.size();i++){
-        if(likes[i]->get_id() == music->get_id()){
-            throw string("invalid");
-        }
-    }
-    music->add_like();
-    login_user->add_like(music);
-}
-
-void check_show_likes_exeption(Client* login_user){
-    if (login_user->get_mode() == "artist") throw string("Permission");
-    vector<Music*> likes = login_user->get_likes();
-    if (likes.size()==0)throw string("empty");
-    cout<<"ID, Name, Artist"<<endl;
-    for(int i=0;i<likes.size();i++){
-        cout<<likes[i]->get_id()<<", "<<likes[i]->get_name()<<", "<<(likes[i]->get_artist())->get_username()<<endl;
-    }
-}
-
-bool compare_two_music(Music* a, Music* b){
-    return (a->get_like() > b->get_like() && a->get_id()<b->get_id());
-}
-
-void check_recommendations_exeption(Client* login_user, vector < Music * > musics){
-    if (login_user->get_mode() == "artist") throw string("Permission");
-    sort(musics.begin(),musics.end(),compare_two_music);
-    vector<Music*> likes = login_user->get_likes();
-    for(int i=0;i<likes.size();i++){
-        for(int j =0;j<musics.size();j++){
-            if(likes[i]->get_id() == musics[j]->get_id()){
-                musics.erase(musics.begin()+j);
-                break;
-            }
-        }
-    }
-    vector < Music * > ans_music;
-    for(int i=0;i<musics.size();i++){
-        if(musics[i]->get_like()!=0){
-            ans_music.push_back(musics[i]);
-        }
-    }
-    musics = ans_music;
-    if (musics.size()==0)throw string("empty");
-    cout<<"ID, Name, Artist, Likes"<<endl;
-    for(int i=0;i<min(int(musics.size()),5);i++){
-        cout<<musics[i]->get_id()<<", "<<musics[i]->get_name()<<", "<<(musics[i]->get_artist())->get_username()<<", "<<musics[i]->get_like()<<endl;
-    }
-}
 
 void Sputify::signup_command() {
     VPSS arg = get_arg(3);
@@ -980,11 +1017,10 @@ void Sputify::add_song_to_playlist_command() {
 void Sputify::show_playlist_command() {
     try {
         VPSS arg = get_arg(1);
-        if(arg.size()==1){
+        if (arg.size() == 1) {
             check_show_playlist_exeption(login_user, playlists, musics, clients, stoi(arg[0].second));
-        }
-        else{
-            check_show_user_playlist_exeption(login_user, playlists,clients,musics,arg);
+        } else {
+            check_show_user_playlist_exeption(login_user, playlists, clients, musics, arg);
         }
     } catch (string err) {
         try_catch_result(err);
@@ -1002,40 +1038,37 @@ void Sputify::delete_song_command() {
     }
 }
 
-void Sputify::follow_command(){
-    try{
+void Sputify::follow_command() {
+    try {
         VPSS arg = get_arg(1);
         check_follow_exeption(login_user, clients, stoi(arg[0].second));
-        cout<<OK<<endl;
-    }
-    catch(string err){
+        cout << OK << endl;
+    } catch (string err) {
         try_catch_result(err);
     }
 }
 
-void Sputify::unfollow_command(){
-    try{
+void Sputify::unfollow_command() {
+    try {
         VPSS arg = get_arg(1);
         check_unfollow_exeption(login_user, clients, stoi(arg[0].second));
-        cout<<OK<<endl;
-    }
-    catch(string err){
+        cout << OK << endl;
+    } catch (string err) {
         try_catch_result(err);
     }
 }
 
-void Sputify::like_command(){
-    try{
+void Sputify::like_command() {
+    try {
         VPSS arg = get_arg(1);
-        check_like_exeption(login_user, musics,stoi(arg[0].second));
-        cout<<OK<<endl;
-    }
-    catch(string err){
+        check_like_exeption(login_user, musics, stoi(arg[0].second));
+        cout << OK << endl;
+    } catch (string err) {
         try_catch_result(err);
     }
 }
 
-void Sputify::search_music_command(){
+void Sputify::search_music_command() {
     try {
         check_search_exeption(login_user, musics);
     } catch (string err) {
@@ -1043,31 +1076,28 @@ void Sputify::search_music_command(){
     }
 }
 
-void Sputify::show_likes_command(){
-    try{
+void Sputify::show_likes_command() {
+    try {
         check_show_likes_exeption(login_user);
-    }
-    catch(string err){
+    } catch (string err) {
         try_catch_result(err);
     }
 }
 
-void Sputify::show_recocommendations_command(){
-    try{
+void Sputify::show_recocommendations_command() {
+    try {
         check_recommendations_exeption(login_user, musics);
-    }
-    catch(string err){
+    } catch (string err) {
         try_catch_result(err);
     }
 }
 
-void Sputify::delete_playlist_command(){
-    try{
+void Sputify::delete_playlist_command() {
+    try {
         VPSS arg = get_arg(1);
         check_delete_playlist_exeption(login_user, playlists, arg[0].second);
-        cout<<OK<<endl;
-    }
-    catch(string err){
+        cout << OK << endl;
+    } catch (string err) {
         try_catch_result(err);
     }
 }
@@ -1088,18 +1118,18 @@ void Sputify::commands() {
                 share_music_command();
             } else if (task == PLAYLIST && delimiter == "?") {
                 add_playlist_command();
-            } else if (task == "follow" && delimiter == "?"){
+            } else if (task == FOLLOW && delimiter == "?") {
                 follow_command();
-            } else if (task == "unfollow" && delimiter == "?"){
+            } else if (task == UNFOLLOW && delimiter == "?") {
                 unfollow_command();
-            } else if (task == "like" && delimiter == "?"){
+            } else if (task == LIKE && delimiter == "?") {
                 like_command();
             } else {
-                try_catch_result("invalid");
+                try_catch_result(ERR_INVALID);
             }
         }
 
-        if (command == COMMANDS[0]) {
+        else if (command == COMMANDS[0]) {
             string task, delimiter;
             cin >> task >> delimiter;
             if (task == MUSICS && delimiter == "?") {
@@ -1112,36 +1142,38 @@ void Sputify::commands() {
                 show_playlist_command();
             } else if (task == SEARCH_MUSIC && delimiter == "?") {
                 search_music_command();
-            } else if (task == "likes" && delimiter == "?"){
+            } else if (task == LIKES && delimiter == "?") {
                 show_likes_command();
-            } else if (task == "recommendations" && delimiter == "?"){
+            } else if (task == RECOMMENDATIONS && delimiter == "?") {
                 show_recocommendations_command();
             } else {
-                try_catch_result("invalid");
+                try_catch_result(ERR_INVALID);
             }
         }
 
-        if (command == COMMANDS[3]) {
+        else if (command == COMMANDS[3]) {
             string task, delimiter;
             cin >> task >> delimiter;
             if (task == ADD_PLAYLIST && delimiter == "?") {
                 add_song_to_playlist_command();
             } else {
-                try_catch_result("invalid");
+                try_catch_result(ERR_INVALID);
             }
         }
 
-        if (command == COMMANDS[2]) {
+        else if (command == COMMANDS[2]) {
             string task, delimiter;
             cin >> task >> delimiter;
             if (task == MUSIC && delimiter == "?") {
                 delete_song_command();
-            } else if (task == PLAYLIST && delimiter == "?"){
+            } else if (task == PLAYLIST && delimiter == "?") {
                 delete_playlist_command();
+            } else {
+                try_catch_result(ERR_INVALID);
             }
-            else {
-                try_catch_result("invalid");
-            }
+        }
+        else{
+            try_catch_result(ERR_INVALID);
         }
     }
 }
