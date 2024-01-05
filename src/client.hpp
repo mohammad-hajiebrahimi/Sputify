@@ -41,11 +41,13 @@ class Client {
     virtual void set_id(int _id) {
         id = _id;
     }
-
+    virtual vector<int> get_following(){return follow_id;}
+    virtual void follow(int _id){follow_id.push_back(_id);}
     protected: int id;
     string username;
     string password;
     string mode;
+    vector<int> follow_id;
 };
 
 Client::Client() {
