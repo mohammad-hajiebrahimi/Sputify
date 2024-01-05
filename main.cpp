@@ -34,7 +34,22 @@ Sputify::Sputify() {
     login_user = NULL;
     musics_num = 0;
 }
+void check_follow_exeption(Client* login_user, vector < Client * > clients, int id){
+    if (login_user == NULL) throw string("Permission");
+    if (login_user->get_id() == id) throw string("invalid");
+    vector<int> following = login_user->get_following();
+    if (find(following.begin(),following.end(),id) != following.end()) throw string("invalid");
+    int flag = 0;
+    for (int i=0;i<clients.size();i++){
+        if (clients[i]->get_id() == id){
+            login_user->follow(id);
+            flag = 1;
+        }
+    }
+    if (!flag)throw string("Not exist");
+    cout<<(login_user->get_following()).size()<<endl;
 
+}
 void Sputify::signup_command() {
     VPSS arg = get_arg(3);
     try {
@@ -168,7 +183,17 @@ void Sputify::commands() {
                 share_music_command();
             } else if (task == PLAYLIST && delimiter == "?") {
                 add_playlist_command();
-            } else {
+            } else if (task == "follow" && delimiter == "?"){
+                try{
+                    VPSS arg = get_arg(1);
+                    check_follow_exeption(login_user, clients, stoi(arg[0].second));
+                    cout<<OK<<endl;
+                }
+                catch(string err){
+                    try_catch_result(err);
+                }
+            }
+            else {
                 try_catch_result("invalid");
             }
         }
