@@ -43,6 +43,7 @@ class Client {
     }
     virtual vector<int> get_following(){return follow_id;}
     virtual void follow(int _id){follow_id.push_back(_id);}
+    virtual void set_following(vector<int> _follow_id){follow_id = _follow_id;}
     protected: int id;
     string username;
     string password;
