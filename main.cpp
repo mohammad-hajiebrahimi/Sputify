@@ -36,7 +36,7 @@ Sputify::Sputify() {
     login_user = NULL;
     musics_num = 0;
 }
-void check_follow_exeption(Client* login_user, vector < Client * > clients, int id){
+void check_follow_exeption(Client* login_user, vector < Client * > &clients, int id){
     if (login_user == NULL) throw string("Permission");
     if (login_user->get_id() == id) throw string("invalid");
     vector<int> following = login_user->get_following();
@@ -45,13 +45,14 @@ void check_follow_exeption(Client* login_user, vector < Client * > clients, int 
     for (int i=0;i<clients.size();i++){
         if (clients[i]->get_id() == id){
             login_user->follow(id);
+            clients[i]->follower(login_user->get_id());
             flag = 1;
         }
     }
     if (!flag)throw string("Not exist");
 }
 
-void check_unfollow_exeption(Client* login_user, vector < Client * > clients, int id){
+void check_unfollow_exeption(Client* login_user, vector < Client * > &clients, int id){
     if (login_user == NULL) throw string("Permission");
     if (login_user->get_id() == id) throw string("invalid");
     vector<int> following = login_user->get_following();
@@ -60,12 +61,20 @@ void check_unfollow_exeption(Client* login_user, vector < Client * > clients, in
         if (clients[i]->get_id() == id){
             flag = 1;
         }
-    }
+    } 
     if (!flag)throw string("Not exist");
     if (find(following.begin(),following.end(),id) == following.end()) throw string("invalid");
     auto ptr = find(following.begin(),following.end(),id);
     following.erase(ptr);
     login_user->set_following(following);
+    for (int i=0;i<clients.size();i++){
+        if (clients[i]->get_id() == id){
+            vector<int> follower = clients[i]->get_follower();
+            auto ptr1 = find(follower.begin(),follower.end(),login_user->get_id());
+            follower.erase(ptr1);
+            clients[i]->set_follower(follower);
+        }
+    }
 }
 
 void Sputify::signup_command() {
