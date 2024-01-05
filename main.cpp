@@ -89,6 +89,7 @@ void check_delete_playlist_exeption(Client* login_user, vector < Playlist * > &p
     }
     if (!flag)throw string("Not exist");
 }
+
 void show_playlist_info(vector<int> songs, vector < Music * > musics){
     for(int i=0;i<songs.size();i++){
         for(int j=0;j<musics.size();j++){
@@ -98,6 +99,7 @@ void show_playlist_info(vector<int> songs, vector < Music * > musics){
         }
     }
 }
+
 void check_show_user_playlist_exeption(Client* login_user, vector < Playlist * > &playlists, vector < Client * > &clients,vector < Music * > musics, VPSS arg){
     if (login_user->get_mode() == "artist") throw string("Permission");
     string name;
@@ -118,6 +120,34 @@ void check_show_user_playlist_exeption(Client* login_user, vector < Playlist * >
         }
     }
     if (!flag)throw string("Not exist");
+}
+
+void check_like_exeption(Client* login_user, vector < Music * > musics, int id){
+    if (login_user->get_mode() == "artist") throw string("Permission");
+    Music* music = NULL;
+    for (int i=0;i<musics.size();i++){
+        if (musics[i]->get_id() == id){
+            music = musics[i];
+        }
+    }
+    if(music == NULL)throw string("Not exist");
+    vector<Music*> likes = login_user->get_likes();
+    for(int i=0;i<likes.size();i++){
+        if(likes[i]->get_id() == music->get_id()){
+            throw string("invalid");
+        }
+    }
+    login_user->add_like(music);
+}
+
+void check_show_likes_exeption(Client* login_user){
+    if (login_user->get_mode() == "artist") throw string("Permission");
+    vector<Music*> likes = login_user->get_likes();
+    if (likes.size()==0)throw string("empty");
+    cout<<"ID, Name, Artist"<<endl;
+    for(int i=0;i<likes.size();i++){
+        cout<<likes[i]->get_id()<<", "<<likes[i]->get_name()<<", "<<(likes[i]->get_artist())->get_username()<<endl;
+    }
 }
 void Sputify::signup_command() {
     VPSS arg = get_arg(3);
@@ -262,6 +292,7 @@ void Sputify::unfollow_command(){
         try_catch_result(err);
     }
 }
+
 void Sputify::commands() {
     string command;
     while (cin >> command) {
@@ -282,6 +313,15 @@ void Sputify::commands() {
                 follow_command();
             } else if (task == "unfollow" && delimiter == "?"){
                 unfollow_command();
+            } else if (task == "like" && delimiter == "?"){
+                try{
+                    VPSS arg = get_arg(1);
+                    check_like_exeption(login_user, musics,stoi(arg[0].second));
+                    cout<<OK<<endl;
+                }
+                catch(string err){
+                    try_catch_result(err);
+                }
             }
             else {
                 try_catch_result("invalid");
@@ -303,6 +343,13 @@ void Sputify::commands() {
                 try {
                     check_search_exeption(login_user, musics);
                 } catch (string err) {
+                    try_catch_result(err);
+                }
+            } else if (task == "likes" && delimiter == "?"){
+                try{
+                    check_show_likes_exeption(login_user);
+                }
+                catch(string err){
                     try_catch_result(err);
                 }
             } else {
