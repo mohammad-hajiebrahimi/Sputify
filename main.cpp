@@ -22,6 +22,8 @@ class Sputify {
     void add_song_to_playlist_command();
     void delete_song_command();
     void show_playlist_command();
+    void follow_command();
+    void unfollow_command();
     void commands();
     private: Client * login_user;
     vector < Client * > clients;
@@ -47,9 +49,25 @@ void check_follow_exeption(Client* login_user, vector < Client * > clients, int 
         }
     }
     if (!flag)throw string("Not exist");
-    cout<<(login_user->get_following()).size()<<endl;
-
 }
+
+void check_unfollow_exeption(Client* login_user, vector < Client * > clients, int id){
+    if (login_user == NULL) throw string("Permission");
+    if (login_user->get_id() == id) throw string("invalid");
+    vector<int> following = login_user->get_following();
+    int flag = 0;
+    for (int i=0;i<clients.size();i++){
+        if (clients[i]->get_id() == id){
+            flag = 1;
+        }
+    }
+    if (!flag)throw string("Not exist");
+    if (find(following.begin(),following.end(),id) == following.end()) throw string("invalid");
+    auto ptr = find(following.begin(),following.end(),id);
+    following.erase(ptr);
+    login_user->set_following(following);
+}
+
 void Sputify::signup_command() {
     VPSS arg = get_arg(3);
     try {
@@ -167,6 +185,27 @@ void Sputify::delete_song_command() {
     }
 }
 
+void Sputify::follow_command(){
+    try{
+        VPSS arg = get_arg(1);
+        check_follow_exeption(login_user, clients, stoi(arg[0].second));
+        cout<<OK<<endl;
+    }
+    catch(string err){
+        try_catch_result(err);
+    }
+}
+
+void Sputify::unfollow_command(){
+    try{
+        VPSS arg = get_arg(1);
+        check_unfollow_exeption(login_user, clients, stoi(arg[0].second));
+        cout<<OK<<endl;
+    }
+    catch(string err){
+        try_catch_result(err);
+    }
+}
 void Sputify::commands() {
     string command;
     while (cin >> command) {
@@ -184,14 +223,9 @@ void Sputify::commands() {
             } else if (task == PLAYLIST && delimiter == "?") {
                 add_playlist_command();
             } else if (task == "follow" && delimiter == "?"){
-                try{
-                    VPSS arg = get_arg(1);
-                    check_follow_exeption(login_user, clients, stoi(arg[0].second));
-                    cout<<OK<<endl;
-                }
-                catch(string err){
-                    try_catch_result(err);
-                }
+                follow_command();
+            } else if (task == "unfollow" && delimiter == "?"){
+                unfollow_command();
             }
             else {
                 try_catch_result("invalid");
