@@ -9,7 +9,6 @@ using namespace std;
 #include "src/help.cpp"
 #include "src/check_exeption.cpp"
 
-
 class Sputify {
     public: Sputify();
     void signup_command();
