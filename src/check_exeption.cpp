@@ -114,6 +114,27 @@ void check_user_exeptoin(Client * login_user, vector < Client * > clients, int i
     cout << "ID: " << id << endl;
     cout << "Mode: " << clients[id - 1] -> get_mode() << endl;
     cout << "Username: " << clients[id - 1] -> get_username() << endl;
+    cout <<"Followings: ";
+    vector<int> followings = clients[id-1]->get_following();
+    for (int i=0;i<followings.size();i++){
+        for(int j=0;j<clients.size();j++){
+            if(followings[i] == clients[j]->get_id()){
+                cout<<clients[j]->get_username();
+                if(i<followings.size()-1)cout<<", ";
+            }
+        }
+    }
+    cout<<endl<<"Followers: ";
+    vector<int> followers = clients[id-1]->get_follower();
+    for (int i=0;i<followers.size();i++){
+        for(int j=0;j<clients.size();j++){
+            if(followers[i] == clients[j]->get_id()){
+                cout<<clients[j]->get_username();
+                if(i<followers.size()-1)cout<<", ";
+            }
+        }
+    }
+    cout<<endl;
     if (clients[id - 1] -> get_mode() == "artist") {
         cout << "Songs: ";
         for (int i = 0; i < musics.size(); i++) {
@@ -123,7 +144,6 @@ void check_user_exeptoin(Client * login_user, vector < Client * > clients, int i
 
             if (i != musics.size() - 1) cout << ", ";
         }
-
         cout << endl;
     }
 
