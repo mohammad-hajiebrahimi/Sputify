@@ -134,7 +134,7 @@ void Sputify::add_playlist_command() {
         try_catch_result(err);
     }
 }
-   
+
 void Sputify::add_song_to_playlist_command() {
     try {
         playlists = check_add_music_to_playlist_exeptoin(login_user, playlists, musics);

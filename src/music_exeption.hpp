@@ -1,5 +1,11 @@
 #ifndef MUSIC_EXEPTION_HPP_INCLUDE
 #define MUSIC_EXEPTION_HPP_INCLUDE
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#include "magic.hpp"
+
 void check_musics_exeption(Client * login_user, vector < Music * > musics);
 void check_music_exeption(Client * login_user, vector < Music * > musics, int id);
 vector < Music * > check_share_exeption(Client * login_user, vector < Music * > musics, int musics_num);

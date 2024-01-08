@@ -1,5 +1,9 @@
 #ifndef USER_EXEPTION_HPP_INCLUDE
 #define USER_EXEPTION_HPP_INCLUDE
+#include <bits/stdc++.h>
+
+using namespace std;
+
 Client * find_cli(string username, vector < Client * > clients);
 Client * check_signup_exeption(Client * login_user, vector < Client * > clients, VPSS arg);
 Client * check_login_exeption(Client * login_user, vector < Client * > clients, VPSS arg);

@@ -1,3 +1,4 @@
+#include "help.hpp"
 VPSS get_arg(int n) {
     VPSS content;
     string line;

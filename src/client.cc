@@ -109,7 +109,7 @@ class Artist: public Client {
     void add_num() {
         songs_num++;
     }
- 
+
     void del_num() {
         songs_num--;
     }

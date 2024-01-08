@@ -1,3 +1,4 @@
+#include "music.hpp"
 class Music {
     public: Music(int _id, string _name, Client * _artist);
     int get_id() {
